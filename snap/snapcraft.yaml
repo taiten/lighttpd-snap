@@ -1,0 +1,26 @@
+name: lighttpd-snap # you probably want to 'snapcraft register <name>'
+base: core18 # the base snap is the execution environment for this snap
+version: '0.1' # just for humans, typically '1.2+git' or '1.3.2'
+summary: A Simple lighttpd in snap
+description: |
+        This is a simple web server with lighttpd debian package from Ubuntu archive 
+        
+grade: stable # must be 'stable' to release into candidate/stable channels
+confinement: strict # use 'strict' once you have the right plugs and slots
+
+
+apps:
+  lighttpd-snap:
+    command: lighttpd-wrapper.sh
+    daemon: simple
+    plugs: [network, network-bind]
+
+parts:
+  lighttpd-snap:
+    plugin: nil
+    stage-packages:
+            - lighttpd
+
+  common:
+    plugin: dump
+    source: .
