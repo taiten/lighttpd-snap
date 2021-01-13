@@ -15,6 +15,7 @@ apps:
     daemon: simple
     plugs: [network, network-bind]
 
+
 parts:
   lighttpd-snap:
     plugin: nil
