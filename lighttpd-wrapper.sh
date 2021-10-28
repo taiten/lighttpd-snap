@@ -8,4 +8,4 @@
 
 echo " I am running " 
 
-$SNAP/usr/sbin/lighttpd -D -f "$SNAP/lighttpd.conf" -m "$SNAP/usr/lib/lighttpd"
+$SNAP/usr/sbin/lighttpd -D -f "$SNAP_DATA/lighttpd.conf" -m "$SNAP/usr/lib/lighttpd"

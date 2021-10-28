@@ -1,0 +1,4 @@
+#!/bin/sh -e
+
+cp -r $SNAP/www $SNAP_DATA/
+cp -r $SNAP/lighttpd.conf $SNAP_DATA/lighttpd.conf
