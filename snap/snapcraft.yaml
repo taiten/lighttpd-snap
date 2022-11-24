@@ -10,7 +10,6 @@ description: |
 grade: stable # must be 'stable' to release into candidate/stable channels
 confinement: strict # use 'strict' once you have the right plugs and slots
 
-
 apps:
   iotdevice-lighttpd:
     command: lighttpd-wrapper.sh
@@ -27,6 +26,9 @@ parts:
   common:
     plugin: dump
     source: .
+    override-prime: |
+      snapcraftctl prime
+      sed -i "s/lighttpd-snap/$SNAPCRAFT_PROJECT_NAME/" $SNAPCRAFT_PRIME/lighttpd.conf
 
   demowrapper:
     plugin: dump
