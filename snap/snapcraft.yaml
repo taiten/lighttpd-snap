@@ -15,14 +15,20 @@ apps:
     command: lighttpd-wrapper.sh
     daemon: simple
     plugs: [network, network-bind]
-
+  check-video:
+    command: bin/check-video.sh
+    daemon: oneshot
+    plugs: [network, network-bind]
 
 parts:
   iotdevice-lighttpd:
     plugin: nil
     stage-packages:
             - lighttpd
-
+  check-video:
+    plugin: nil
+    stage-packages:
+        - wget
   common:
     plugin: dump
     source: .
