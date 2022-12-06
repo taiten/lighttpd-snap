@@ -1,0 +1,96 @@
+#! /bin/sh
+
+CONF=$SNAP_DATA/lighttpd.conf
+BIN=$SNAP/usr/sbin/lighttpd
+PORT=80
+
+LC_ALL=C.UTF-8
+LANG=C.UTF-8
+
+cat << EOF >$CONF
+server.modules = (
+	"mod_indexfile",
+	"mod_access",
+	"mod_alias",
+ 	"mod_redirect",
+)
+
+server.document-root        = "$SNAP_DATA/www/"
+server.upload-dirs          = ( "$SNAP_DATA/iotdevice-http/uploads" )
+server.errorlog             = "$SNAP_DATA/iotdevice-http/error.log"
+server.pid-file             = "$SNAP_DATA/iotdevice-http.pid"
+server.port                 = 80
+webdav.sqlite-db-name       = "$SNAP_DATA/iotdevice-http/lighttpd.webdav_lock.db"
+index-file.names            = ( "index.php", ".index.html", "index.lighttpd.html" )
+url.access-deny             = ( "~", ".inc" )
+
+
+# features
+#https://redmine.lighttpd.net/projects/lighttpd/wiki/Server_feature-flagsDetails
+server.feature-flags       += ("server.h2proto" => "enable")
+server.feature-flags       += ("server.h2c"     => "enable")
+server.feature-flags       += ("server.graceful-shutdown-timeout" => 5)
+#server.feature-flags       += ("server.graceful-restart-bg" => "enable")
+
+# strict parsing and normalization of URL for consistency and security
+# https://redmine.lighttpd.net/projects/lighttpd/wiki/Server_http-parseoptsDetails
+# (might need to explicitly set "url-path-2f-decode" = "disable"
+#  if a specific application is encoding URLs inside url-path)
+server.http-parseopts = (
+  "header-strict"           => "enable",# default
+  "host-strict"             => "enable",# default
+  "host-normalize"          => "enable",# default
+  "url-normalize-unreserved"=> "enable",# recommended highly
+  "url-normalize-required"  => "enable",# recommended
+  "url-ctrls-reject"        => "enable",# recommended
+  "url-path-2f-decode"      => "enable",# recommended highly (unless breaks app)
+  "url-path-dotseg-remove"  => "enable",# recommended highly (unless breaks app)
+)
+
+static-file.exclude-extensions = ( ".php", ".pl", ".fcgi" )
+
+# default listening port for IPv6 falls back to the IPv4 port
+#include_shell "$SNAP/usr/share/lighttpd/use-ipv6.pl " + server.port
+#include_shell "$SNAP/usr/share/lighttpd/create-mime.conf.pl"
+include "/$SNAP_DATA/etc/lighttpd/conf-enabled/*.conf"
+
+server.modules += (
+	"mod_dirlisting",
+	"mod_staticfile",
+)
+
+server.modules += ( "mod_fastcgi" )
+
+## Start an FastCGI server for php (needs the php-cgi package)
+fastcgi.server += ( ".php" =>
+	((
+		"bin-path" => "$SNAP/usr/bin/php-cgi",
+		"socket" => "$SNAP_DATA/run/lighttpd/php.socket",
+		"max-procs" => 1,
+		"bin-environment" => (
+			"PHP_FCGI_CHILDREN" => "4",
+			"PHP_FCGI_MAX_REQUESTS" => "10000"
+		),
+		"bin-copy-environment" => (
+			"PATH", "SHELL", "USER"
+		),
+		"broken-scriptfilename" => "enable"
+	))
+)
+
+EOF
+chmod 0600 $CONF
+
+[ -e $SNAP_DATA/iotdevice-http/compress ] || mkdir -p $SNAP_DATA/iotdevice-http/compress
+[ -e $SNAP_DATA/iotdevice-http/uploads ] || mkdir -p $SNAP_DATA/iotdevice-http/uploads
+[ -e $SNAP_DATA/www ] || mkdir -p $SNAP_DATA/www
+[ -e $SNAP_DATA/etc/lighttpd/conf-enabled ] || mkdir -p $SNAP_DATA/etc/lighttpd/conf-enabled
+[ -e $SNAP_DATA/run/lighttpd ] || mkdir -p $SNAP_DATA/run/lighttpd
+
+touch $SNAP_DATA/www/.index.html
+
+#ln -sf $SNAP/etc/lighttpd/conf-available/10-fastcgi.conf $SNAP_DATA/etc/lighttpd/conf-enabled/
+#ln -sf $SNAP/etc/lighttpd/conf-available/15-fastcgi-php.conf $SNAP_DATA/etc/lighttpd/conf-enabled/
+
+
+$BIN -D -f $CONF -m /$SNAP/usr/lib/lighttpd
