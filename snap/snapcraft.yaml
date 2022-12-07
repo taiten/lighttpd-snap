@@ -1,45 +1,67 @@
-name: iotdevice-lighttpd # you probably want to 'snapcraft register <name>'
-base: core18 # the base snap is the execution environment for this snap
+name: iotdevice-http # you probably want to 'snapcraft register <name>'
+base: core22 # the base snap is the execution environment for this snap
 version: '0.1' # just for humans, typically '1.2+git' or '1.3.2'
 summary: A simple IOT Demo web server for wrapper
 description: |
-        This is a simple web server with lighttpd debian package from Ubuntu archive
-        The webpage content can be replaced by replacing files under /var/snap/lighttpd-snap/current/www/
-        Current lighttpd service is running with lighttpd.conf in /var/snap/lighttpd-snap/current/lighttpd.conf
-        
+  Reboot of the lighttpd snap
+
 grade: stable # must be 'stable' to release into candidate/stable channels
 confinement: strict # use 'strict' once you have the right plugs and slots
 
 apps:
-  iotdevice-lighttpd:
-    command: lighttpd-wrapper.sh
+  iotdevice-http:
+    command: run-lighttpd
+    daemon: simple
+    plugs: [network, network-bind]
+  php-fpm:
+    command: run-php-fpm
     daemon: simple
     plugs: [network, network-bind]
   check-video:
-    command: bin/check-video.sh
+    command: check-video
     daemon: oneshot
     plugs: [network, network-bind]
+  check-web:
+    command: check-web
+    daemon: oneshot
+    plugs: [network, network-bind]
+    
 
 parts:
-  iotdevice-lighttpd:
+  iotdevice-http:
     plugin: nil
     stage-packages:
             - lighttpd
-  check-video:
+            - spawn-fcgi
+            - php
+            - php-cgi
+            - php-fpm
+    override-prime: |
+      craftctl default
+      #      rm $CRAFT_PRIME/usr/bin/php-cgi
+      cp -vf $CRAFT_PRIME/usr/bin/php-cgi.default $CRAFT_PRIME/usr/bin/php-cgi
+  check-web:
     plugin: nil
     stage-packages:
-        - wget
-  common:
-    plugin: dump
+           - git
     source: .
-    override-prime: |
-      snapcraftctl prime
-      sed -i "s/lighttpd-snap/$SNAPCRAFT_PROJECT_NAME/" $SNAPCRAFT_PRIME/lighttpd.conf
-
-  demowrapper:
-    plugin: dump
-    source: https://github.com/skidoomanubuntu/demowrapper.git
     override-build: |
+      cp -av check-web $CRAFT_PART_INSTALL
       TARGET=$SNAPCRAFT_PART_INSTALL/www
       mkdir -p $TARGET
-      cp -vr * $TARGET
+      git clone https://github.com/jicheu/demowrapper.git $TARGET
+  check-video:
+    plugin: nil
+    source: .
+    stage-packages:
+        - wget
+    override-build: |
+      cp -av check-video $CRAFT_PART_INSTALL
+    after: [check-web]
+  copy:
+    plugin: nil
+    source: .
+    override-build: |
+      cp -av run-lighttpd $CRAFT_PART_INSTALL
+      cp -av run-php-fpm $CRAFT_PART_INSTALL
+    after: [iotdevice-http]
