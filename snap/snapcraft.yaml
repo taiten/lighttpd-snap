@@ -15,6 +15,7 @@ apps:
     plugs: [network, network-bind]
   php-fpm:
     command: run-php-fpm
+    daemon: simple
     plugs: [network, network-bind]
   check-video:
     command: check-video
@@ -40,18 +41,22 @@ parts:
       #      rm $CRAFT_PRIME/usr/bin/php-cgi
       cp -vf $CRAFT_PRIME/usr/bin/php-cgi.default $CRAFT_PRIME/usr/bin/php-cgi
   check-web:
-    plugin: dump
-    stage-packages:
-           - git
-    source: https://github.com/jicheu/demowrapper.git
-    override-build: |
-      TARGET=$SNAPCRAFT_PART_INSTALL/www
-      mkdir -p $TARGET
-      cp -vr * $TARGET
-  check-video:
     plugin: nil
     stage-packages:
+           - git
+    source: .
+    override-build: |
+      cp -av check-web $CRAFT_PART_INSTALL
+      TARGET=$SNAPCRAFT_PART_INSTALL/www
+      mkdir -p $TARGET
+      git clone https://github.com/jicheu/demowrapper.git $TARGET
+  check-video:
+    plugin: nil
+    source: .
+    stage-packages:
         - wget
+    override-build: |
+      cp -av check-video $CRAFT_PART_INSTALL
     after: [check-web]
   copy:
     plugin: nil
@@ -59,6 +64,4 @@ parts:
     override-build: |
       cp -av run-lighttpd $CRAFT_PART_INSTALL
       cp -av run-php-fpm $CRAFT_PART_INSTALL
-      cp -av check-web $CRAFT_PART_INSTALL
-      cp -av check-video $CRAFT_PART_INSTALL
     after: [iotdevice-http]

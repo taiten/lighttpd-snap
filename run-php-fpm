@@ -22,6 +22,6 @@ pm.max_spare_servers = 3
 EOF
 chmod 0600 $CONF
 
-$BIN -R --daemonize --fpm-config $CONF
+$BIN -R --nodaemonize --fpm-config $CONF
 
 
