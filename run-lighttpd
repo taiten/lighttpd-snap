@@ -51,7 +51,7 @@ static-file.exclude-extensions = ( ".php", ".pl", ".fcgi" )
 
 # default listening port for IPv6 falls back to the IPv4 port
 #include_shell "$SNAP/usr/share/lighttpd/use-ipv6.pl " + server.port
-#include_shell "$SNAP/usr/share/lighttpd/create-mime.conf.pl"
+include_shell "$SNAP/usr/share/lighttpd/create-mime.conf.pl"
 include "/$SNAP_DATA/etc/lighttpd/conf-enabled/*.conf"
 
 server.modules += (
@@ -64,8 +64,10 @@ server.modules += ( "mod_fastcgi" )
 ## Start an FastCGI server for php (needs the php-cgi package)
 fastcgi.server += ( ".php" =>
 	((
-		"bin-path" => "$SNAP/usr/bin/php-cgi",
-		"socket" => "$SNAP_DATA/run/lighttpd/php.socket",
+#		"bin-path" => "$SNAP/usr/bin/php-cgi",
+#		"socket" => "$SNAP_DATA/run/lighttpd/php.socket",
+		"host" => "127.0.0.1",
+		"port" => "9001",
 		"max-procs" => 1,
 		"bin-environment" => (
 			"PHP_FCGI_CHILDREN" => "4",
@@ -91,6 +93,5 @@ touch $SNAP_DATA/www/.index.html
 
 #ln -sf $SNAP/etc/lighttpd/conf-available/10-fastcgi.conf $SNAP_DATA/etc/lighttpd/conf-enabled/
 #ln -sf $SNAP/etc/lighttpd/conf-available/15-fastcgi-php.conf $SNAP_DATA/etc/lighttpd/conf-enabled/
-
 
 $BIN -D -f $CONF -m /$SNAP/usr/lib/lighttpd

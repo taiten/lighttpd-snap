@@ -1,0 +1,27 @@
+#! /bin/sh
+
+CONF=$SNAP_DATA/php-fpm.conf
+BIN=$SNAP/usr/sbin/php-fpm8.1
+
+LC_ALL=C.UTF-8
+LANG=C.UTF-8
+
+cat << EOF >$CONF
+
+pid = $SNAP_DATA/run/php/php8.1-fpm.pid
+access.log = /dev/null
+
+[www]
+listen = 127.0.0.1:9001
+pm = dynamic
+pm.max_children = 5
+pm.start_servers = 2
+pm.min_spare_servers = 1
+pm.max_spare_servers = 3
+
+EOF
+chmod 0600 $CONF
+
+$BIN --daemonize --fpm-config $CONF
+
+

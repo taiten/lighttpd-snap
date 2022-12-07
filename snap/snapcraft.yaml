@@ -13,25 +13,30 @@ apps:
     command: run-lighttpd
     daemon: simple
     plugs: [network, network-bind]
-  lighty-enable-mod:
-    command: usr/sbin/lighty-enable-mod
+  php-fpm:
+    command: run-php-fpm
     daemon: simple
     plugs: [network, network-bind]
+    
 
 
 parts:
   iotdevice-http:
     plugin: nil
-    organize:
-      usr/bin/php-cgi.default: /usr/bin/php-cgi
     stage-packages:
             - lighttpd
             - spawn-fcgi
             - php
             - php-cgi
+            - php-fpm
+    override-prime: |
+      craftctl default
+      rm $CRAFT_PRIME/usr/bin/php-cgi
+      cp -vf $CRAFT_PRIME/usr/bin/php-cgi.default $CRAFT_PRIME/usr/bin/php-cgi
   copy:
     plugin: nil
     source: .
     override-build: |
-      cp -av run-lighttpd $SNAPCRAFT_PART_INSTALL
+      cp -av run-lighttpd $CRAFT_PART_INSTALL
+      cp -av run-php-fpm $CRAFT_PART_INSTALL
     after: [iotdevice-http]
