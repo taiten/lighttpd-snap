@@ -85,7 +85,7 @@ chmod 0600 $CONF
 
 [ -e $SNAP_DATA/iotdevice-http/compress ] || mkdir -p $SNAP_DATA/iotdevice-http/compress
 [ -e $SNAP_DATA/iotdevice-http/uploads ] || mkdir -p $SNAP_DATA/iotdevice-http/uploads
-[ -e $SNAP_DATA/www ] || mkdir -p $SNAP_DATA/www
+# [ -e $SNAP_DATA/www ] || mkdir -p $SNAP_DATA/www
 [ -e $SNAP_DATA/etc/lighttpd/conf-enabled ] || mkdir -p $SNAP_DATA/etc/lighttpd/conf-enabled
 [ -e $SNAP_DATA/run/lighttpd ] || mkdir -p $SNAP_DATA/run/lighttpd
 

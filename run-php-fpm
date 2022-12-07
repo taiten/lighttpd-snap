@@ -8,8 +8,8 @@ LANG=C.UTF-8
 
 cat << EOF >$CONF
 
-pid = $SNAP_DATA/run/php/php8.1-fpm.pid
-access.log = /dev/null
+pid = $SNAP_DATA/php8.1-fpm.pid
+error_log = /dev/null
 
 [www]
 listen = 127.0.0.1:9001
@@ -22,6 +22,6 @@ pm.max_spare_servers = 3
 EOF
 chmod 0600 $CONF
 
-$BIN --daemonize --fpm-config $CONF
+$BIN -R --daemonize --fpm-config $CONF
 
 

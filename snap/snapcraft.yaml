@@ -9,13 +9,12 @@ grade: stable # must be 'stable' to release into candidate/stable channels
 confinement: strict # use 'strict' once you have the right plugs and slots
 
 apps:
-  iotdevice-lighttpd:
+  iotdevice-http:
     command: run-lighttpd
     daemon: simple
     plugs: [network, network-bind]
   php-fpm:
     command: run-php-fpm
-    daemon: simple
     plugs: [network, network-bind]
   check-video:
     command: check-video
@@ -23,6 +22,7 @@ apps:
     plugs: [network, network-bind]
   check-web:
     command: check-web
+    daemon: oneshot
     plugs: [network, network-bind]
     
 
@@ -39,18 +39,26 @@ parts:
       craftctl default
       #      rm $CRAFT_PRIME/usr/bin/php-cgi
       cp -vf $CRAFT_PRIME/usr/bin/php-cgi.default $CRAFT_PRIME/usr/bin/php-cgi
+  check-web:
+    plugin: dump
+    stage-packages:
+           - git
+    source: https://github.com/jicheu/demowrapper.git
+    override-build: |
+      TARGET=$SNAPCRAFT_PART_INSTALL/www
+      mkdir -p $TARGET
+      cp -vr * $TARGET
   check-video:
     plugin: nil
     stage-packages:
         - wget
-  check-web:
-    plugin: nil
-    stage-packages:
-        - git
+    after: [check-web]
   copy:
     plugin: nil
     source: .
     override-build: |
       cp -av run-lighttpd $CRAFT_PART_INSTALL
       cp -av run-php-fpm $CRAFT_PART_INSTALL
+      cp -av check-web $CRAFT_PART_INSTALL
+      cp -av check-video $CRAFT_PART_INSTALL
     after: [iotdevice-http]
