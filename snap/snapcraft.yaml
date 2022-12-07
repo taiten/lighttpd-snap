@@ -17,8 +17,14 @@ apps:
     command: run-php-fpm
     daemon: simple
     plugs: [network, network-bind]
+  check-video:
+    command: check-video
+    daemon: oneshot
+    plugs: [network, network-bind]
+  check-web:
+    command: check-web
+    plugs: [network, network-bind]
     
-
 
 parts:
   iotdevice-http:
@@ -31,8 +37,16 @@ parts:
             - php-fpm
     override-prime: |
       craftctl default
-      rm $CRAFT_PRIME/usr/bin/php-cgi
+      #      rm $CRAFT_PRIME/usr/bin/php-cgi
       cp -vf $CRAFT_PRIME/usr/bin/php-cgi.default $CRAFT_PRIME/usr/bin/php-cgi
+  check-video:
+    plugin: nil
+    stage-packages:
+        - wget
+  check-web:
+    plugin: nil
+    stage-packages:
+        - git
   copy:
     plugin: nil
     source: .

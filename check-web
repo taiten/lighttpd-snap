@@ -1,0 +1,10 @@
+#!/bin/bash
+
+cd $SNAP_USER_DATA/www
+if [ ! -d .git ] then
+	git clone https://github.com/jicheu/demowrapper.git .
+else
+	git pull
+fi
+
+exit 0
